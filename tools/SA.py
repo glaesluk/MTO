@@ -42,8 +42,13 @@ class SimAnn():
         self.best_energy = self.current_energy
         self.greedy = greedy
         self.timelimit = timelimit
-
-        self.step_max = 100000000 /  (500*5) # (avrg. routes/target * avrg. routelength)
+        
+        # calculate number of routes 
+        routes = 0
+        for target in self.problem:
+            routes += len(target)
+        # the amount of steps should more or less fit the timelimit     
+        self.step_max = (100000000000 /  routes) * (self.timelimit/3600) 
         self.get_neighbor = self.move_combinatorial
 
 
