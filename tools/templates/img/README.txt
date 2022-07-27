@@ -1,0 +1,1 @@
+Empty directory. Compiled SMILES pictures will be generated here.

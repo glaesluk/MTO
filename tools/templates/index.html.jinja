@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>CHAI Multi-route optimization &mdash; Overview</title>
+  <script type="text/javascript">
+    function downloadParam()
+        {
+		var selection = ''
+		{% for r in routes %}
+		selection += ' '
+		selection += document.getElementById("{{r.smiles}}").value
+		{% endfor %}
+		var num_mol = document.getElementById("num_mol").value
+        var textToSaveAsBlob = new Blob([selection + "\n" + num_mol], {type:"text/plain"});
+        var textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
+        var fileNameToSaveAs = "parameters.txt";
+
+        var downloadLink = document.createElement("a");
+        downloadLink.download = fileNameToSaveAs;
+        downloadLink.innerHTML = "Download File";
+        downloadLink.href = textToSaveAsURL;
+        downloadLink.onclick = destroyClickedElement;
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+
+        downloadLink.click();
+        }
+
+    function destroyClickedElement(event)
+        {
+        document.body.removeChild(event.target);
+        }
+  </script>
+  <!-- Bootstrap core CSS -->
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="css/simple-sidebar.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+  <div class="d-flex" id="wrapper">
+
+    <!-- Sidebar -->
+    <div class="bg-light border-right" id="sidebar-wrapper">
+      <div class="sidebar-heading">Routes </div>
+      <div class="list-group list-group-flush">
+		<a href="index.html" class="list-group-item list-group-item-action bg-light">Overview</a>
+		<a href="synthesis-order.html" class="list-group-item list-group-item-action bg-light">Synthesis order</a>
+		{% for r in routes %}
+		<a href="{{ r.file }}" class="list-group-item list-group-item-action bg-light">{{ r.title }} </a>
+		{% endfor %}
+      </div>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+
+      <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+        <button class="btn btn-primary" id="menu-toggle">Toggle Menu</button>
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+		<ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+			<li class="nav-item"><img src="./css/ChaiLogo.svg" style="height: 50px;"></li>
+		</ul>
+
+        <!--<div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+            <li class="nav-item active">
+              <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Link</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Dropdown
+              </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="#">Action</a>
+                <a class="dropdown-item" href="#">Another action</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#">Something else here</a>
+              </div>
+            </li>
+          </ul>
+        </div>-->
+      </nav>
+
+      <div class="container-fluid">
+        <h1 class="mt-4">Multi-target optimization &mdash; Overview</h1>
+		<h2>Optimization statistics</h2>
+		<ul>
+			<li>Intermediates: {{ stats.total_interm }}</li>
+			<li>Unique intermediates: {{ stats.total_unique_interm }}</li>
+			<li>Building blocks: {{ stats.total_buyables }}</li>
+			<li>Unique building blocks: {{ stats.total_unique_buyables }}</li>
+		</ul>
+
+        <h2>Targets</h2>
+		<p style="text-align: center;">
+		<object type="image/svg+xml" id="full_graph" data="full_graph.svg" style="max-width: 100%; max-height: 600px;"></object>
+		<p style="text-align: center;">
+		<br>
+		<p style="text-align: center;"><a href="./full_graph.svg">Click to expand</a></p>
+		
+		<div class="container">
+			<div class="row">
+				{% for r in routes %}
+					{% if loop.index0 is divisibleby(4) and loop.index0 is gt(0) %}
+					</div>
+					<div class="row">
+					{% endif %}
+					<div class="col">
+						<img src="./img/{{ r.image }}" alt="{{ r.smiles }}" title="{{ r.smiles }}" height="250px"><br>
+						<a href="{{ r.file }}"><strong>Route {{ loop.index0 }}</strong></a><br />
+						{{ r.intermediates }} intermediates, {{ r.buyables }} building blocks<br />
+						<select name="{{r.smiles}}" id="{{r.smiles}}">
+  						<option value= "0">--automatic--</option>
+						<option value= "-1">Don't use this target</option>
+						<option value= "1">Keep this target</option>
+						</select>
+					</div>
+				{% endfor %}
+			</div>
+			<br/>			
+			<div class="row" style="text-align:center">
+				<div class="col">
+					How many targets to display:
+					<select name="num_mol" id="num_mol">
+					<option value=5>5</option>
+					<option value=10>10</option>
+					<option value=25>25</option>
+					<option value=50>50</option>
+					<option value=all>All</option>
+					</select>
+				</div>
+				<div class="col">
+					<button onclick="downloadParam()">
+						Download Parameters
+					</button>
+				</div>
+			</div>
+			<div class="row" style="text-align:center">
+				<p>Please save the file next to "index.html" and execute postopt.py to get new routes.</p>
+			</div>
+		</div>
+
+		<h2>Popular intermediates</h2>
+		{% if stats.popular_interm|length %}
+			<div class="container">
+			<div class="row">
+				{% for i in stats.popular_interm %}
+					{% if loop.index0 is divisibleby(4) and loop.index0 is gt(0) %}
+						</div>
+						<div class="row">
+					{% endif %}
+					<div class="col">
+						<center>
+						<img src="./img/{{ i.image }}" alt="{{ i.smiles }}" title="{{ i.smiles }}" height="200px"><br>
+						<strong>{{ i.node_idx }}:</strong> Used {{ i.count }} times
+						</center>
+					</div>
+				{% endfor %}
+			</div>
+			</div>
+		{% else %}
+			<p>No shared intermediates</p>
+		{% endif %}
+
+		<h2>Popular building blocks</h2>
+		{% if stats.popular_buyables|length %}
+			<div class="container">
+			<div class="row">
+				{% for i in stats.popular_buyables %}
+					{% if loop.index0 is divisibleby(4) and loop.index0 is gt(0) %}
+						</div>
+						<div class="row">
+					{% endif %}
+					<div class="col">
+						<center>
+						<img src="./img/{{ i.image }}" alt="{{ i.smiles }}" title="{{ i.smiles }}" height="200px"><br>
+						<strong>{{ i.node_idx }}:</strong> Used {{ i.count }} times
+						</center>
+					</div>
+				{% endfor %}			
+			</div>
+			</div>
+		{% else %}
+			<p>No shared building blocks</p>
+		{% endif %}			
+
+		<!--<p>The starting state of the menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will change.</p>
+        <p>Make sure to keep all page content within the <code>#page-content-wrapper</code>. The top navbar is optional, and just for demonstration. Just create an element with the <code>#menu-toggle</code> ID which will toggle the menu when clicked.</p>-->
+      </div>
+    </div>
+    <!-- /#page-content-wrapper -->
+
+  </div>
+  <!-- /#wrapper -->
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Menu Toggle Script -->
+  <script>
+    $("#menu-toggle").click(function(e) {
+      e.preventDefault();
+      $("#wrapper").toggleClass("toggled");
+    });
+  </script>
+
+</body>
+
+</html>
