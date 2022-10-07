@@ -43,12 +43,19 @@ class SimAnn():
         self.greedy = greedy
         self.timelimit = timelimit
         
-        # calculate number of routes 
-        routes = 0
-        for target in self.problem:
-            routes += len(target)
-        # the amount of steps should more or less fit the timelimit     
-        self.step_max = (100000000000 /  routes) * (self.timelimit/3600) 
+        if self.greedy:
+            # calculate number of routes 
+            routes = 0
+            length = 0
+            for target in self.problem:
+                routes += len(target)
+                for route in target:
+                    length += len(route)
+            routelength = length/routes
+            # the amount of steps should more or less fit the timelimit     
+            self.step_max = (1000000000000 /  (routes*routelength)) * (self.timelimit/3600) 
+        else:
+            self.step_max = self.timelimit * 10000
         self.get_neighbor = self.move_combinatorial
 
 
@@ -107,6 +114,7 @@ class SimAnn():
             if E_n < self.best_energy:
                 self.best_energy = E_n
                 self.best_state = proposed_neighbor
+                print(self.best_energy)
 
             # persist some info for later
             self.hist.append([

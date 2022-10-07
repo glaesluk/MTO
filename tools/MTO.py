@@ -310,19 +310,18 @@ class MTO:
 
     def simAnn(self,start = None, timelimit = 200):        
         if start == None:
-            start=self.simple_greedy(25)
+            start = {}
+            target = -1
+            for i in range(self.num_mol_smallTree):
+                while target in start.keys() or target ==-1:
+                    target = random.choice(list(range(len(self.problem))))
+                route = random.choice(list(range(len(self.problem[target]))))
+                start[target] = route
+            print("Start:", self.costFunc(start))
         print("Start Annealing...")
         annealing = SimAnn(self.costFunc, self.problem, start, timelimit=timelimit, greedy =True, cooling_schedule='quadratic')
         annealing.results()
         return annealing.best_state
-
-    def tabuSearch(self, timelimit = 200, start = None):        
-        if start == None:
-            start=self.greedy(25)
-        print("Start Tabu Search ...")
-        search = Tabu(self.costFunc, self.problem, start, timelimit=timelimit, greedy = False)
-        search.results()
-        return search.best_state
 
     def costFunc(self,path):
         ''' calculates the number of intermedates for a given selection of trees.
@@ -672,8 +671,6 @@ class MTO:
 
 
 if __name__ == '__main__':
-    # route_dir = 'C:/Users/GNQBG/OneDrive - Bayer/Personal Data/AI4Synthesis_service_calculate_routes/routes'
-    # route_dir = '/tmp/newroutes/V8/01'
     parser = argparse.ArgumentParser()
     parser.add_argument('routedir', type=str)
     parser.add_argument('number_smallTree', type=int)
@@ -697,28 +694,6 @@ if __name__ == '__main__':
         with open (os.path.join(route_dir, "sets.pkl"), 'rb') as fp:
             sets = pickle.load(fp)
             trees = None
-    '''
-    This is for firstly determine the disconnected components
-
-                # Calculate the set of intermediates
-                all_interms = set()
-                for route in routes:
-                    for node in nodeGenerator(route):
-                        all_interms.add(node['smiles'])
-                problem_interms.append(all_interms)
-    
-    # Calculate how many disconnected components are there
-    all_components = connected_components(problem_interms)
-    print("{} component(s) found: {}".format(len(all_components), all_components))
-
-    for component_id, component in enumerate(all_components):
-        # Every set of components gets its own report
-       
-        smaller_problem = list(map(lambda x: problem[x], component))
-'''
-    solutions = []
-    # For development this is set to False. For production,
-    # this should be set to True
 
     aco = MTO()
     aco.add_sets(trees=trees,sets=sets)
@@ -728,12 +703,13 @@ if __name__ == '__main__':
     path, optimal = aco.run_IP(timelimit=timelimit/2, startsol= path, num_mol_smallTree=num_mol_smallTree)
     if not optimal:
         path =aco.simAnn(path,timelimit=timelimit/2)
-    end = time()
-    print("took {} Seconds to get this solution of {}".format(end-start, aco.costFunc(path)))
+    
 
     final_routes = aco.find_shorter_path(path)
+    end = time()
+    print("took {} Seconds to get this solution".format(end-start))
 
-    outdir = "C:\\Temp\\{}\\{}".format(route_dir.split("\\")[-1],component_id)
-    os.environ["PATH"] += os.pathsep + "C:\\Program Files (x86)\\Graphviz\\bin"
-    aco.write_file(path,outdir)  
+    outdir = "C:\\Temp\\{}".format(route_dir.split("\\")[-1])
+    os.environ["PATH"] += os.pathsep + "C:\\Program Files\\Graphviz\\bin"
+    aco.write_file(final_routes,outdir)  
 

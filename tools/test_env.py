@@ -64,29 +64,30 @@ if __name__ == '__main__':
         aco.best_path = path
         solutions[dir] = [aco.costFunc(path)]
         print("Greedy:", aco.costFunc(path))
-        
+
         time1 = time()
 
-        print("Warmstart:-----------------------------")
-        path, optimal = aco.run_IP(timelimit=aco.timelimit/2, startsol=path, num_mol_smallTree=aco.num_mol_smallTree)
-        solutions[dir].append(aco.costFunc(path))
+        print("IP-Solver:-----------------------------")
+        # path, optimal = aco.run_IP(timelimit=aco.timelimit/2, startsol=path, num_mol_smallTree=aco.num_mol_smallTree)
         
         # path = aco.simAnn(start=path, timelimit=timelimit)
-        # solutions[dir].append(aco.costFunc(path))
+        solutions[dir].append(aco.costFunc(path))
         time3 = time()
         
-        print("Greedy 1:-----------------------------")
-        path, optimal = aco.run_IP(timelimit=aco.timelimit/2, num_mol_smallTree=aco.num_mol_smallTree)
+        print("Simm. Ann:-----------------------------")
+        # path, optimal = aco.run_IP(timelimit=aco.timelimit/2, num_mol_smallTree=aco.num_mol_smallTree)
         # path = aco.greedy_routes()
         # path = aco.select_targets_greedy(path,num_mol_smallTree, weighted=False)
-        solutions[dir].append(aco.costFunc(path))
+        # solutions[dir].append(aco.costFunc(path))
+     
+        if not aco.optimal:
+            print("simulated Annealing: ---------------------------")
+            path = aco.simAnn(start=path, timelimit=timelimit/2)
+            solutions[dir].append(aco.costFunc(path))
         
-        # if not aco.optimal:
-        #     print("simulated Annealing: ---------------------------")
-        #     path = aco.simAnn(start=path, timelimit=timelimit/2)
-        #     solutions[dir].append(aco.costFunc(path))
+        # final_routes = aco.find_shorter_path(path)
         time4 = time()
-        times[dir] = ['%.0f'%(time1-start), '%.0f'%(time3-time1)]#, '%.0f'%(time4-time3)]
+        times[dir] = ['%.0f'%(time1-start), '%.0f'%(time3-time1), '%.0f'%(time4-time3)]
         print("---------------------------------------------")
 
 
